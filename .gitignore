@@ -22,3 +22,20 @@ __pycache__/
 *.jpg
 *.jpeg
 *.png
+
+# Node & Frontend dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build folders
+dist/
+build/
+.next/
+
+# Environment variables (NEVER push your API keys!)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
