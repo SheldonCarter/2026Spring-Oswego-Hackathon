@@ -9,6 +9,8 @@ app = FastAPI()
 def read_root():
     return {"message": "Hi"}
 
+
+
 # 1. Initialize the classifier with a specific ResNet-50 model
 # This will download the model automatically the first time you run it
 classifier = pipeline("image-classification", model="microsoft/resnet-50")
