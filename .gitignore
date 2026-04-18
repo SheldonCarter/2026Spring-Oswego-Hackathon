@@ -1,0 +1,24 @@
+# The virtual environment (the "box" we made)
+recycle_env/
+venv/
+env/
+
+# Python "behind-the-scenes" files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# AI Model files (Don't upload 90MB+ files to Git!)
+*.pth
+*.pkl
+*.bin
+*.safetensors
+*.onnx
+
+# Hidden Mac files
+.DS_Store
+
+# Images you might use for testing
+*.jpg
+*.jpeg
+*.png
