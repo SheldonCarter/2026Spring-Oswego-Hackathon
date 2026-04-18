@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Camera, RotateCcw, Trash2, Recycle, Leaf, AlertCircle, Upload } from 'lucide-react';
+import { Camera, RotateCcw, Trash2, Recycle, Leaf, AlertCircle, Upload, ScanLine } from 'lucide-react';
 
 type TrashCategory = 'recyclable' | 'compost' | 'landfill' | 'hazardous';
 
@@ -13,91 +13,53 @@ interface AnalysisResult {
 const categoryConfig = {
   recyclable: {
     icon: Recycle,
-    color: 'bg-blue-500',
-    lightColor: 'bg-blue-50',
-    borderColor: 'border-blue-500',
-    textColor: 'text-blue-700',
+    color: 'bg-sky-500',
+    lightColor: 'bg-sky-950/40',
+    borderColor: 'border-sky-500/40',
+    textColor: 'text-sky-400',
+    badgeColor: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
     title: 'Recyclable',
   },
   compost: {
     icon: Leaf,
-    color: 'bg-green-500',
-    lightColor: 'bg-green-50',
-    borderColor: 'border-green-500',
-    textColor: 'text-green-700',
+    color: 'bg-emerald-500',
+    lightColor: 'bg-emerald-950/40',
+    borderColor: 'border-emerald-500/40',
+    textColor: 'text-emerald-400',
+    badgeColor: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
     title: 'Compost',
   },
   landfill: {
     icon: Trash2,
-    color: 'bg-gray-500',
-    lightColor: 'bg-gray-50',
-    borderColor: 'border-gray-500',
-    textColor: 'text-gray-700',
+    color: 'bg-zinc-500',
+    lightColor: 'bg-zinc-800/40',
+    borderColor: 'border-zinc-500/40',
+    textColor: 'text-zinc-400',
+    badgeColor: 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20',
     title: 'Landfill',
   },
   hazardous: {
     icon: AlertCircle,
-    color: 'bg-red-500',
-    lightColor: 'bg-red-50',
-    borderColor: 'border-red-500',
-    textColor: 'text-red-700',
-    title: 'Hazardous Waste',
+    color: 'bg-rose-500',
+    lightColor: 'bg-rose-950/40',
+    borderColor: 'border-rose-500/40',
+    textColor: 'text-rose-400',
+    badgeColor: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+    title: 'Hazardous',
   },
 };
 
-// Mock AI analysis function
 const analyzeTresh = (): AnalysisResult => {
   const mockResults: AnalysisResult[] = [
-    {
-      category: 'recyclable',
-      item: 'Plastic Water Bottle',
-      confidence: 94,
-      instructions: 'Remove cap and rinse before placing in recycling bin. Cap can be recycled separately.',
-    },
-    {
-      category: 'compost',
-      item: 'Banana Peel',
-      confidence: 98,
-      instructions: 'Place in compost bin. Great source of potassium for your compost.',
-    },
-    {
-      category: 'recyclable',
-      item: 'Aluminum Can',
-      confidence: 96,
-      instructions: 'Rinse and crush to save space. Place in recycling bin.',
-    },
-    {
-      category: 'landfill',
-      item: 'Chip Bag',
-      confidence: 91,
-      instructions: 'Most chip bags are not recyclable due to mixed materials. Dispose in landfill bin.',
-    },
-    {
-      category: 'recyclable',
-      item: 'Cardboard Box',
-      confidence: 97,
-      instructions: 'Flatten and remove any tape or labels. Place in cardboard recycling.',
-    },
-    {
-      category: 'hazardous',
-      item: 'Battery',
-      confidence: 99,
-      instructions: 'Take to designated battery recycling location. Do not dispose in regular trash.',
-    },
-    {
-      category: 'compost',
-      item: 'Coffee Grounds',
-      confidence: 95,
-      instructions: 'Excellent for compost. Paper filter can also be composted.',
-    },
-    {
-      category: 'recyclable',
-      item: 'Glass Bottle',
-      confidence: 93,
-      instructions: 'Rinse and remove cap. Place in glass recycling bin.',
-    },
+    { category: 'recyclable', item: 'Plastic Water Bottle', confidence: 94, instructions: 'Remove cap and rinse before placing in recycling bin. Cap can be recycled separately.' },
+    { category: 'compost', item: 'Banana Peel', confidence: 98, instructions: 'Place in compost bin. Great source of potassium for your compost.' },
+    { category: 'recyclable', item: 'Aluminum Can', confidence: 96, instructions: 'Rinse and crush to save space. Place in recycling bin.' },
+    { category: 'landfill', item: 'Chip Bag', confidence: 91, instructions: 'Most chip bags are not recyclable due to mixed materials. Dispose in landfill bin.' },
+    { category: 'recyclable', item: 'Cardboard Box', confidence: 97, instructions: 'Flatten and remove any tape or labels. Place in cardboard recycling.' },
+    { category: 'hazardous', item: 'Battery', confidence: 99, instructions: 'Take to designated battery recycling location. Do not dispose in regular trash.' },
+    { category: 'compost', item: 'Coffee Grounds', confidence: 95, instructions: 'Excellent for compost. Paper filter can also be composted.' },
+    { category: 'recyclable', item: 'Glass Bottle', confidence: 93, instructions: 'Rinse and remove cap. Place in glass recycling bin.' },
   ];
-
   return mockResults[Math.floor(Math.random() * mockResults.length)];
 };
 
@@ -113,11 +75,7 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
+    return () => { stream?.getTracks().forEach(t => t.stop()); };
   }, [stream]);
 
   const startCamera = async () => {
@@ -128,9 +86,7 @@ export default function App() {
       });
       setStream(mediaStream);
       setUseCameraMode(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
+      if (videoRef.current) videoRef.current.srcObject = mediaStream;
     } catch (err) {
       console.error('Error accessing camera:', err);
       setCameraError(true);
@@ -149,13 +105,8 @@ export default function App() {
         ctx.drawImage(video, 0, 0);
         const imageData = canvas.toDataURL('image/jpeg');
         setCapturedImage(imageData);
-
-        // Simulate AI analysis
         setIsAnalyzing(true);
-        setTimeout(() => {
-          setAnalysis(analyzeTresh());
-          setIsAnalyzing(false);
-        }, 1500);
+        setTimeout(() => { setAnalysis(analyzeTresh()); setIsAnalyzing(false); }, 1800);
       }
     }
   };
@@ -165,15 +116,9 @@ export default function App() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const imageData = e.target?.result as string;
-        setCapturedImage(imageData);
-
-        // Simulate AI analysis
+        setCapturedImage(e.target?.result as string);
         setIsAnalyzing(true);
-        setTimeout(() => {
-          setAnalysis(analyzeTresh());
-          setIsAnalyzing(false);
-        }, 1500);
+        setTimeout(() => { setAnalysis(analyzeTresh()); setIsAnalyzing(false); }, 1800);
       };
       reader.readAsDataURL(file);
     }
@@ -183,145 +128,159 @@ export default function App() {
     setCapturedImage(null);
     setAnalysis(null);
     setIsAnalyzing(false);
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
+    stream?.getTracks().forEach(t => t.stop());
+    setStream(null);
     setUseCameraMode(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const config = analysis ? categoryConfig[analysis.category] : null;
   const Icon = config?.icon;
 
   return (
-    <div className="size-full bg-gradient-to-br from-emerald-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-600 to-blue-600 p-6 text-white">
-          <div className="flex items-center gap-3">
-            <Recycle className="w-8 h-8" />
-            <h1 className="text-2xl">AI Trash Sorter</h1>
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-lg">
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-4">
+            <Recycle className="w-7 h-7 text-emerald-400" />
           </div>
-          <p className="mt-2 opacity-90">Point your camera at trash to identify and sort correctly</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">TrashSort AI</h1>
+          <p className="text-zinc-500 mt-1 text-sm">Snap an item to find out how to dispose of it correctly</p>
         </div>
 
-        <div className="p-6">
-          <div className="relative bg-black rounded-2xl overflow-hidden aspect-video">
-            {!capturedImage && !useCameraMode ? (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                <div className="text-center text-white p-8">
-                  <Recycle className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="opacity-75">Choose an option below to analyze trash</p>
+        {/* Main Card */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+
+          {/* Viewfinder */}
+          <div className="relative bg-zinc-950 aspect-video overflow-hidden">
+            {!capturedImage && !useCameraMode && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <div className="w-16 h-16 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                  <ScanLine className="w-8 h-8 text-zinc-600" />
                 </div>
+                <p className="text-zinc-600 text-sm">Ready to scan</p>
               </div>
-            ) : !capturedImage && useCameraMode ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <img src={capturedImage} alt="Captured trash" className="w-full h-full object-cover" />
             )}
 
+            {!capturedImage && useCameraMode && (
+              <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+            )}
+
+            {capturedImage && (
+              <img src={capturedImage} alt="Captured item" className="w-full h-full object-cover" />
+            )}
+
+            {/* Corner brackets */}
+            {(useCameraMode || capturedImage) && !isAnalyzing && (
+              <>
+                <div className="absolute top-3 left-3 w-5 h-5 border-t-2 border-l-2 border-emerald-400/60 rounded-tl" />
+                <div className="absolute top-3 right-3 w-5 h-5 border-t-2 border-r-2 border-emerald-400/60 rounded-tr" />
+                <div className="absolute bottom-3 left-3 w-5 h-5 border-b-2 border-l-2 border-emerald-400/60 rounded-bl" />
+                <div className="absolute bottom-3 right-3 w-5 h-5 border-b-2 border-r-2 border-emerald-400/60 rounded-br" />
+              </>
+            )}
+
+            {/* Analyzing overlay */}
             {isAnalyzing && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                  <p>Analyzing...</p>
+              <div className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce [animation-delay:0ms]" />
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce [animation-delay:150ms]" />
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce [animation-delay:300ms]" />
                 </div>
+                <p className="text-emerald-400 text-xs font-semibold tracking-widest uppercase">Identifying…</p>
               </div>
             )}
           </div>
 
-          <canvas ref={canvasRef} className="hidden" />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
+          {/* Actions & Results */}
+          <div className="p-5 space-y-4">
 
-          <div className="mt-6 flex gap-3">
-            {!capturedImage && !useCameraMode ? (
-              <>
-                <button
-                  onClick={startCamera}
-                  className="flex-1 bg-gradient-to-r from-emerald-600 to-blue-600 text-white py-4 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-shadow"
-                >
-                  <Camera className="w-5 h-5" />
-                  Use Camera
-                </button>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-shadow"
-                >
-                  <Upload className="w-5 h-5" />
-                  Upload Photo
-                </button>
-              </>
-            ) : !capturedImage && useCameraMode ? (
-              <>
-                <button
-                  onClick={capturePhoto}
-                  className="flex-1 bg-gradient-to-r from-emerald-600 to-blue-600 text-white py-4 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-shadow"
-                >
-                  <Camera className="w-5 h-5" />
-                  Capture Photo
-                </button>
+            {/* Buttons */}
+            <div className="flex gap-3">
+              {!capturedImage && !useCameraMode && (
+                <>
+                  <button
+                    onClick={startCamera}
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-zinc-950 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-sm"
+                  >
+                    <Camera className="w-4 h-4" /> Use Camera
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-300 font-medium py-3 rounded-xl flex items-center justify-center gap-2 border border-zinc-700 transition-all text-sm"
+                  >
+                    <Upload className="w-4 h-4" /> Upload Photo
+                  </button>
+                </>
+              )}
+
+              {!capturedImage && useCameraMode && (
+                <>
+                  <button
+                    onClick={capturePhoto}
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-zinc-950 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-sm"
+                  >
+                    <Camera className="w-4 h-4" /> Capture Photo
+                  </button>
+                  <button
+                    onClick={reset}
+                    className="bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-400 py-3 px-4 rounded-xl border border-zinc-700 transition-all"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+
+              {capturedImage && !isAnalyzing && (
                 <button
                   onClick={reset}
-                  className="bg-gray-600 text-white py-4 px-6 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-700 transition-colors"
+                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-300 font-medium py-3 rounded-xl flex items-center justify-center gap-2 border border-zinc-700 transition-all text-sm"
                 >
-                  <RotateCcw className="w-5 h-5" />
+                  <RotateCcw className="w-4 h-4" /> Scan Another Item
                 </button>
-              </>
-            ) : (
-              <button
-                onClick={reset}
-                className="flex-1 bg-gray-600 text-white py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-700 transition-colors"
-              >
-                <RotateCcw className="w-5 h-5" />
-                Analyze Another Item
-              </button>
+              )}
+            </div>
+
+            {/* Camera error */}
+            {cameraError && !capturedImage && (
+              <div className="flex items-start gap-3 p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl">
+                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                <p className="text-rose-400 text-xs leading-relaxed">Camera unavailable — use the Upload Photo button instead.</p>
+              </div>
+            )}
+
+            {/* Result card */}
+            {analysis && config && Icon && (
+              <div className={`rounded-2xl border ${config.borderColor} ${config.lightColor} overflow-hidden`}>
+                <div className="p-4 flex items-center gap-3">
+                  <div className={`${config.color} w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0`}>
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-xs font-semibold uppercase tracking-widest ${config.textColor} mb-0.5`}>
+                      {config.title}
+                    </div>
+                    <div className="text-white font-semibold text-base truncate">{analysis.item}</div>
+                  </div>
+                  <span className={`text-xs font-mono px-2.5 py-1 rounded-full flex-shrink-0 ${config.badgeColor}`}>
+                    {analysis.confidence}%
+                  </span>
+                </div>
+                <div className="px-4 pb-4">
+                  <div className="h-px bg-white/5 mb-3" />
+                  <p className="text-zinc-400 text-sm leading-relaxed">{analysis.instructions}</p>
+                </div>
+              </div>
             )}
           </div>
-
-          {cameraError && !capturedImage && (
-            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-yellow-800">
-                <p>Camera access was denied or unavailable. You can still upload a photo using the Upload Photo button.</p>
-              </div>
-            </div>
-          )}
-
-          {analysis && config && Icon && (
-            <div className={`mt-6 p-6 rounded-2xl border-2 ${config.borderColor} ${config.lightColor}`}>
-              <div className="flex items-start gap-4">
-                <div className={`${config.color} text-white p-3 rounded-xl`}>
-                  <Icon className="w-8 h-8" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h2 className={`text-xl ${config.textColor}`}>{config.title}</h2>
-                    <span className="text-sm bg-white px-3 py-1 rounded-full border border-gray-200">
-                      {analysis.confidence}% confident
-                    </span>
-                  </div>
-                  <p className="mb-3">{analysis.item}</p>
-                  <div className="bg-white p-4 rounded-xl border border-gray-200">
-                    <p className="text-sm">{analysis.instructions}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
+
+        <canvas ref={canvasRef} className="hidden" />
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+
       </div>
     </div>
   );
