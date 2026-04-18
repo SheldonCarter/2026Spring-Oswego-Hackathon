@@ -49,18 +49,22 @@ const categoryConfig = {
   },
 };
 
-const analyzeTresh = (): AnalysisResult => {
-  const mockResults: AnalysisResult[] = [
-    { category: 'recyclable', item: 'Plastic Water Bottle', confidence: 94, instructions: 'Remove cap and rinse before placing in recycling bin. Cap can be recycled separately.' },
-    { category: 'compost', item: 'Banana Peel', confidence: 98, instructions: 'Place in compost bin. Great source of potassium for your compost.' },
-    { category: 'recyclable', item: 'Aluminum Can', confidence: 96, instructions: 'Rinse and crush to save space. Place in recycling bin.' },
-    { category: 'landfill', item: 'Chip Bag', confidence: 91, instructions: 'Most chip bags are not recyclable due to mixed materials. Dispose in landfill bin.' },
-    { category: 'recyclable', item: 'Cardboard Box', confidence: 97, instructions: 'Flatten and remove any tape or labels. Place in cardboard recycling.' },
-    { category: 'hazardous', item: 'Battery', confidence: 99, instructions: 'Take to designated battery recycling location. Do not dispose in regular trash.' },
-    { category: 'compost', item: 'Coffee Grounds', confidence: 95, instructions: 'Excellent for compost. Paper filter can also be composted.' },
-    { category: 'recyclable', item: 'Glass Bottle', confidence: 93, instructions: 'Rinse and remove cap. Place in glass recycling bin.' },
-  ];
-  return mockResults[Math.floor(Math.random() * mockResults.length)];
+const BACKEND_URL = "http://localhost:8000";
+
+const analyzeImage = async (file: File): Promise<AnalysisResult> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${BACKEND_URL}/identify`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to analyze image");
+  }
+
+  return response.json();
 };
 
 export default function App() {
@@ -70,6 +74,7 @@ export default function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [cameraError, setCameraError] = useState(false);
   const [useCameraMode, setUseCameraMode] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,7 +99,7 @@ export default function App() {
     }
   };
 
-  const capturePhoto = () => {
+  const capturePhoto = async () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -106,19 +111,45 @@ export default function App() {
         const imageData = canvas.toDataURL('image/jpeg');
         setCapturedImage(imageData);
         setIsAnalyzing(true);
-        setTimeout(() => { setAnalysis(analyzeTresh()); setIsAnalyzing(false); }, 1800);
+        setApiError(null);
+
+        // Convert canvas to blob and send to backend
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            try {
+              const file = new File([blob], "captured.jpg", { type: "image/jpeg" });
+              const result = await analyzeImage(file);
+              setAnalysis(result);
+            } catch (error) {
+              console.error('Error analyzing image:', error);
+              setApiError('Failed to analyze image. Make sure the backend is running.');
+            } finally {
+              setIsAnalyzing(false);
+            }
+          }
+        }, 'image/jpeg');
       }
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         setCapturedImage(e.target?.result as string);
         setIsAnalyzing(true);
-        setTimeout(() => { setAnalysis(analyzeTresh()); setIsAnalyzing(false); }, 1800);
+        setApiError(null);
+
+        try {
+          const result = await analyzeImage(file);
+          setAnalysis(result);
+        } catch (error) {
+          console.error('Error analyzing image:', error);
+          setApiError('Failed to analyze image. Make sure the backend is running.');
+        } finally {
+          setIsAnalyzing(false);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -128,6 +159,7 @@ export default function App() {
     setCapturedImage(null);
     setAnalysis(null);
     setIsAnalyzing(false);
+    setApiError(null);
     stream?.getTracks().forEach(t => t.stop());
     setStream(null);
     setUseCameraMode(false);
@@ -249,6 +281,14 @@ export default function App() {
               <div className="flex items-start gap-3 p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl">
                 <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
                 <p className="text-rose-400 text-xs leading-relaxed">Camera unavailable — use the Upload Photo button instead.</p>
+              </div>
+            )}
+
+            {/* API error */}
+            {apiError && (
+              <div className="flex items-start gap-3 p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl">
+                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                <p className="text-rose-400 text-xs leading-relaxed">{apiError}</p>
               </div>
             )}
 
