@@ -57,13 +57,14 @@ def classify_item(label: str) -> tuple[str, str]:
         model="gemini-3-flash-preview", contents=f'Explain how to recycle {label} properly in no more than 2 sentences'
     )
     
+    response = "responseresponseresponse"
     for category, data in CATEGORY_MAPPING.items():
         if any(keyword in label_lower for keyword in data["keywords"]):
-            print(response.text)
-            return category, response.text
+            print(response)
+            return category, response
     
     # Default to landfill if no match
-    return "landfill", response.text
+    return "landfill", response
 
 @app.get("/")
 def home():
@@ -83,7 +84,8 @@ async def identify_material(file: UploadFile = File(...)):
         response = client.models.generate_content(
             model="gemini-3-flash-preview", contents=["Identify this object as a recyclable/non-recycleable category, in no more than 2 sentences", image]
         )
-        print(response.text)
+        response = "iamtexiamtexiamtexiamtexiamtex"
+        print(response)
 
         # Run the classification model
         results = classifier(image)
@@ -108,6 +110,8 @@ async def identify_material(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Could not classify image")
             
     except Exception as e:
+        import traceback
+        traceback.print_exc()  # prints full stack trace to terminal
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
