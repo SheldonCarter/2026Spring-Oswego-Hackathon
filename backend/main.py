@@ -80,6 +80,11 @@ async def identify_material(file: UploadFile = File(...)):
         contents = await file.read()
         image = Image.open(io.BytesIO(contents)).convert("RGB")
 
+        response = client.models.generate_content(
+            model="gemini-3-flash-preview", contents=["Identify this object as a recyclable/non-recycleable category, in no more than 2 sentences", image]
+        )
+        print(response.text)
+
         # Run the classification model
         results = classifier(image)
 
