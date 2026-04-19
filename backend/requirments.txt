@@ -3,6 +3,8 @@ uvicorn
 python-multipart
 transformers
 torch
+torchvision
+torchaudio
 pillow
 genai
 dotenv
