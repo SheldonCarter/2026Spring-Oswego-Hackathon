@@ -53,9 +53,9 @@ CATEGORY_MAPPING = {
 def classify_item(label: str) -> tuple[str, str]:
     """Map item label to category and get instructions"""
     label_lower = label.lower()
-    response = client.models.generate_content(
-        model="gemini-3-flash-preview", contents=f'Explain how to recycle {label} properly in no more than 2 sentences'
-    )
+    # response = client.models.generate_content(
+    #     model="gemini-3-flash-preview", contents=f'Explain how to recycle {label} properly in no more than 2 sentences'
+    # )
     
     response = "responseresponseresponse"
     for category, data in CATEGORY_MAPPING.items():
@@ -81,9 +81,9 @@ async def identify_material(file: UploadFile = File(...)):
         contents = await file.read()
         image = Image.open(io.BytesIO(contents)).convert("RGB")
 
-        response = client.models.generate_content(
-            model="gemini-3-flash-preview", contents=["Identify this object as a recyclable/non-recycleable category, in no more than 2 sentences", image]
-        )
+        # response = client.models.generate_content(
+        #     model="gemini-3-flash-preview", contents=["Identify this object as a recyclable/non-recycleable category, in no more than 2 sentences", image]
+        # )
         response = "iamtexiamtexiamtexiamtexiamtex"
         print(response)
 
