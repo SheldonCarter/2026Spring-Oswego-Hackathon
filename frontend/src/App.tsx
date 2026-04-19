@@ -239,7 +239,6 @@ export default function App() {
                   <div className="ts-conf-track">
                     <div className="ts-conf-fill" style={{ width: `${analysis.confidence}%`, background: cfg.accent }} />
                   </div>
-                  <span className="ts-conf-pct">{analysis.confidence}% match</span>
                 </div>
 
                 <p className="ts-instructions">{analysis.instructions}</p>
