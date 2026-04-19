@@ -4,6 +4,13 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from transformers import pipeline
 from PIL import Image
+from google import genai
+
+from dotenv import load_dotenv
+load_dotenv()
+
+# The client gets the API key from the environment variable `GEMINI_API_KEY`.
+client = genai.Client()
 
 # 1. Initialize FastAPI
 app = FastAPI(title="Recycling Identification API")
@@ -46,13 +53,17 @@ CATEGORY_MAPPING = {
 def classify_item(label: str) -> tuple[str, str]:
     """Map item label to category and get instructions"""
     label_lower = label.lower()
+    response = client.models.generate_content(
+        model="gemini-3-flash-preview", contents=f'Explain how to recycle {label} properly in no more than 2 sentences'
+    )
     
     for category, data in CATEGORY_MAPPING.items():
         if any(keyword in label_lower for keyword in data["keywords"]):
-            return category, data["instructions"]
+            print(response.text)
+            return category, response.text
     
     # Default to landfill if no match
-    return "landfill", CATEGORY_MAPPING["landfill"]["instructions"]
+    return "landfill", response.text
 
 @app.get("/")
 def home():

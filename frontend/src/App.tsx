@@ -82,7 +82,13 @@ export default function App() {
   useEffect(() => {
     return () => { stream?.getTracks().forEach(t => t.stop()); };
   }, [stream]);
-
+  
+  useEffect(() => {
+    if (stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play();
+    }
+  }, [stream, useCameraMode]);
   const startCamera = async () => {
     try {
       setCameraError(false);
@@ -91,11 +97,12 @@ export default function App() {
       });
       setStream(mediaStream);
       setUseCameraMode(true);
-      if (videoRef.current) videoRef.current.srcObject = mediaStream;
     } catch (err) {
       console.error('Error accessing camera:', err);
+      alert(err); // temporarily add this to see the exact error
       setCameraError(true);
       setUseCameraMode(false);
+
     }
   };
 
