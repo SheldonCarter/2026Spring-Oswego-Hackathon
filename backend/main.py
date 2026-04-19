@@ -54,7 +54,7 @@ def classify_item(label: str) -> tuple[str, str]:
     """Map item label to category and get instructions"""
     label_lower = label.lower()
     response = client.models.generate_content(
-        model="gemini-3-flash-preview", contents=f'Explain how to recycle {label} properly in no more than 2 sentences'
+        model="gemini-2.5-flash-lite", contents=f'Explain how to recycle {label} properly in no more than 2 sentences'
     )
     
     # response = "responseresponseresponse"
@@ -82,32 +82,22 @@ async def identify_material(file: UploadFile = File(...)):
         image = Image.open(io.BytesIO(contents)).convert("RGB")
 
         response = client.models.generate_content(
-            model="gemini-3-flash-preview", contents=["Identify this object as a recyclable/non-recycleable category, in no more than 2 sentences", image]
+            model="gemini-2.5-flash-lite", contents=["Identify this object and give me just its name", image]
         )
         # response = "iamtexiamtexiamtexiamtexiamtex"
         print(response.text)
 
-        # Run the classification model
-        results = classifier(image)
-
-        # Extract top prediction
-        if results and len(results) > 0:
-            top_prediction = results[0]
-            item_label = top_prediction["label"]
-            confidence_score = top_prediction["score"]
             
-            # Classify into category
-            category, instructions = classify_item(item_label)
-            
-            # Return formatted result to frontend
-            return {
-                "category": category,
-                "item": item_label,
-                "confidence": int(confidence_score * 100),  # Convert to percentage
-                "instructions": instructions
-            }
-        else:
-            raise HTTPException(status_code=400, detail="Could not classify image")
+        # Classify into category
+        category, instructions = classify_item(response.text)
+        
+        # Return formatted result to frontend
+        return {
+            "category": category,
+            "item":  response.text,
+            "confidence": int(.5 * 100),  # Convert to percentage
+            "instructions": instructions
+        }
             
     except Exception as e:
         import traceback
