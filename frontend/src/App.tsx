@@ -116,6 +116,10 @@ export default function App() {
     } catch { setCameraError(true); setUseCameraMode(false); }
   };
 
+  useEffect( () => {
+    startCamera()
+  }, [])
+
   const capturePhoto = async () => {
     if (!videoRef.current || !canvasRef.current) return;
     const v = videoRef.current, c = canvasRef.current;
@@ -190,16 +194,19 @@ export default function App() {
           <div className="ts-body">
             {/* Buttons */}
             <div className="ts-btns">
-              {!capturedImage && !useCameraMode && (<>
-                <button className="ts-btn-main" onClick={startCamera}><Camera size={15} /> Use Camera</button>
+              {(<>
+                {/* <button className="ts-btn-main" onClick={startCamera}><Camera size={15} /> Use Camera</button> */}
                 <button className="ts-btn-ghost" onClick={() => fileInputRef.current?.click()}><Upload size={15} /> Upload</button>
               </>)}
-              {!capturedImage && useCameraMode && (<>
+              {!capturedImage && (<>
                 <button className="ts-btn-main" onClick={capturePhoto}><Camera size={15} /> Capture</button>
-                <button className="ts-btn-sq" onClick={reset}><RotateCcw size={15} /></button>
               </>)}
               {capturedImage && !isAnalyzing && (
-                <button className="ts-btn-ghost" onClick={reset} style={{ flex: 1 }}><RotateCcw size={15} /> Scan another</button>
+                <button className="ts-btn-ghost" onClick={() => {
+                  reset()
+                  startCamera()
+                }
+                } style={{ flex: 1 }}><RotateCcw size={15} /> Scan another</button>
               )}
             </div>
 
