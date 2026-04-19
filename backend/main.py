@@ -95,7 +95,7 @@ async def identify_material(file: UploadFile = File(...)):
         return {
             "category": category,
             "item":  response.text,
-            "confidence": int(.5 * 100),  # Convert to percentage
+           # "confidence": int(.5 * 100),  # Convert to percentage
             "instructions": instructions
         }
             
