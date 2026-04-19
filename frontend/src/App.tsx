@@ -165,7 +165,7 @@ export default function App() {
             <Leaf size={20} className="ts-logo-leaf" />
             <span className="ts-title">TrashSort</span>
           </div>
-          <p className="ts-tagline">Snap anything — we'll tell you where it goes</p>
+          <p className="ts-tagline">Trash? Recycling? Compost? Take a picture!</p>
         </div>
 
         <div className="ts-card">
